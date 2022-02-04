@@ -18,6 +18,7 @@ package com.example.lemonade
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import com.google.android.material.snackbar.Snackbar
@@ -35,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private val LEMONADE_STATE = "LEMONADE_STATE"
     private val LEMON_SIZE = "LEMON_SIZE"
     private val SQUEEZE_COUNT = "SQUEEZE_COUNT"
+    private val LEMON_TREE_COUNT = "LEMON_TREE_COUNT"
     // SELECT represents the "pick lemon" state
     private val SELECT = "select"
     // SQUEEZE represents the "squeeze lemon" state
@@ -49,9 +51,12 @@ class MainActivity : AppCompatActivity() {
     private var lemonSize = -1
     // Default the squeezeCount to -1
     private var squeezeCount = -1
+    // Default  the lemonTreeCount
+    private var lemonTreeCount = 3
 
     private var lemonTree = LemonTree()
     private var lemonImage: ImageView? = null
+    private var restartButton: Button? = null
 
 
 
@@ -68,6 +73,7 @@ class MainActivity : AppCompatActivity() {
             lemonadeState = savedInstanceState.getString(LEMONADE_STATE, "select")
             lemonSize = savedInstanceState.getInt(LEMON_SIZE, -1)
             squeezeCount = savedInstanceState.getInt(SQUEEZE_COUNT, -1)
+            lemonTreeCount = savedInstanceState.getInt(LEMON_TREE_COUNT , 3)
         }
         // === END IF STATEMENT ===
 
@@ -79,8 +85,15 @@ class MainActivity : AppCompatActivity() {
         }
         lemonImage!!.setOnLongClickListener {
             // TODO: replace 'false' with a call to the function that shows the squeeze count
-            false
+            showSnackbar()
         }
+        restartButton = findViewById(R.id.restartTreeButton)
+        restartButton!!.setOnClickListener{
+            if (lemonadeState == SELECT)
+                restartLemonsTree()
+        }
+
+
     }
 
     /**
@@ -92,6 +105,7 @@ class MainActivity : AppCompatActivity() {
         outState.putString(LEMONADE_STATE, lemonadeState)
         outState.putInt(LEMON_SIZE, lemonSize)
         outState.putInt(SQUEEZE_COUNT, squeezeCount)
+        outState.putInt(LEMON_TREE_COUNT, lemonTreeCount)
         super.onSaveInstanceState(outState)
     }
 
@@ -110,11 +124,16 @@ class MainActivity : AppCompatActivity() {
         //  - The squeezeCount should be 0 since we haven't squeezed any lemons just yet.
 
         if (lemonadeState == SELECT) {
-            lemonadeState = SQUEEZE
-            lemonSize = lemonTree.pick()
-            squeezeCount = 0
-            setViewElements()
-            showSnackbar()
+            if (lemonTreeCount == 0){
+                showNoLemons()
+            }
+            else {
+                lemonadeState = SQUEEZE
+                lemonSize = lemonTree.pick()
+                squeezeCount = 0
+                lemonTreeCount -= 1
+                setViewElements()
+            }
         }
 
         // TODO: When the image is clicked in the SQUEEZE state the squeezeCount needs to be
@@ -161,12 +180,18 @@ class MainActivity : AppCompatActivity() {
 
         val state = when(lemonadeState){
             SELECT -> {
-                lemonImage?.setImageResource(R.drawable.lemon_tree)
+                val lemons = when(lemonTreeCount){
+                    3 -> lemonImage?.setImageResource(R.drawable.lemon_tree)
+                    2 -> lemonImage?.setImageResource(R.drawable.tree_with_2_lemons)
+                    1 -> lemonImage?.setImageResource(R.drawable.tree_with_1_lemons)
+                    else -> lemonImage?.setImageResource(R.drawable.tree_with_no_lemons)
+                }
                 textAction.setText("Click to select a lemon!")
             }
             SQUEEZE ->  {
                 lemonImage?.setImageResource(R.drawable.lemon_squeeze)
                 textAction.setText("Click to juice the lemon!")
+                showSnackbar()
             }
             DRINK -> {
                 lemonImage?.setImageResource(R.drawable.lemon_drink)
@@ -204,6 +229,17 @@ class MainActivity : AppCompatActivity() {
         ).show()
         return true
     }
+
+    private fun showNoLemons(){
+        val alertText = getString(R.string.alert_no_lemons)
+        Snackbar.make(findViewById(R.id.constraint_Layout),
+            alertText,Snackbar.LENGTH_SHORT).show()
+    }
+
+    private fun restartLemonsTree(){
+        lemonTreeCount = 3
+        lemonImage?.setImageResource(R.drawable.lemon_tree)
+    }
 }
 
 /**
@@ -212,6 +248,6 @@ class MainActivity : AppCompatActivity() {
  */
 class LemonTree {
     fun pick(): Int {
-        return (2..4).random()
+        return (2..6).random()
     }
 }

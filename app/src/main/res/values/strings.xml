@@ -20,5 +20,7 @@
     <string name="lemon_drink">Click to drink your lemonade!</string>
     <string name="lemon_empty_glass">Click to start again!</string>
     <string name="squeeze_count">Squeeze count: %1$d, keep squeezing!</string>
+    <string name="alert_no_lemons">Press restart button to pick more lemons!</string>
     <string name="todo">TODO</string>
+    <string name="restart_tree_button">Restart Tree</string>
 </resources>
